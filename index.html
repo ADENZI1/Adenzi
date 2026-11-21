@@ -131,6 +131,12 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:10px 0 28px}
 .sj:hover{transform:translateY(-5px)}.sj.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(217,179,106,.35),var(--shadow)}
 .empty{padding:34px 20px;text-align:center;animation:up .6s var(--ease) both}.empty h3{font-family:var(--disp);margin:0 0 4px}.empty p{margin:0;color:var(--mut)}
 .uc{font-size:13px;color:var(--gold);border:1px solid var(--line);border-radius:999px;padding:2px 12px}
+.ad{margin:14px 0;display:grid;gap:10px;text-align:right}
+.ad input,.ad select{font:600 15px var(--body);letter-spacing:0;text-align:right;padding:12px 14px;border-radius:14px;border:1px solid var(--edge);background:var(--glass2);color:var(--tx);width:100%}
+.ad label{font-size:14px;color:var(--mut)}
+.ad.r{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ad .ck{display:flex;align-items:center;gap:8px;color:var(--tx)}
+.ad .ck input{width:auto}
 </style>
 </head>
 <body>
@@ -230,12 +236,12 @@ document.addEventListener("pointermove",e=>{const c=e.target.closest&&e.target.c
 document.addEventListener("pointerout",e=>{const c=e.target.closest&&e.target.closest(".feat .glow");if(c&&!c.contains(e.relatedTarget))c.style.transform=""});
 
 /* ===== الدخول ===== */
-const AUTH={firebase:null,codeEndpoint:null}; // تتملّى لما الموقع يترفع على استضافتك
+const AUTH={firebase:{apiKey:"AIzaSyAhnianNm0GCq2vP0SMPL5kadx7mELzP3E",authDomain:"eldars-7a9fa.firebaseapp.com",projectId:"eldars-7a9fa",storageBucket:"eldars-7a9fa.firebasestorage.app",messagingSenderId:"925855362195",appId:"1:925855362195:web:7dd5992cd0864bc19a7166"},codeEndpoint:null};
 const am=(t,k)=>{const e=$("#am");e.className="am "+(k||"");e.textContent=t};
 const SJ={p:["لغة عربية","رياضيات","لغة إنجليزية","علوم","دراسات اجتماعية"],e:["لغة عربية","رياضيات","لغة إنجليزية","علوم","دراسات اجتماعية"],s:["لغة عربية","لغة إنجليزية","رياضيات","فيزياء","كيمياء","أحياء","تاريخ","جغرافيا"]},SN={p:"المرحلة الابتدائية",e:"المرحلة الإعدادية",s:"المرحلة الثانوية"};
 const gid=(k,i)=>k+(k==="p"?i+4:i+1);
 function hb(){const b=$("#hb"),u=$("#uc");$("#hg").setAttribute("href",ses?"#app":"#grades");
- if(ses){u.hidden=false;u.textContent=ses.role==="admin"?"مسؤول":"طالب";b.textContent="خروج";b.setAttribute("href","#top");b.onclick=()=>{ses=null}}
+ if(ses){u.hidden=false;u.textContent=ses.role==="admin"?"مسؤول":"طالب";b.textContent="خروج";b.setAttribute("href","#top");b.onclick=()=>{ses=null;try{firebase.auth().signOut()}catch(_){}}}
  else{u.hidden=true;b.textContent="تسجيل الدخول";b.setAttribute("href","#login");b.onclick=null}}
 function renderApp(h){const v=$("#av");
  if(h==="#app"){v.innerHTML=`<h2>${ses.role==="admin"?"أهلاً يا مسؤول":"أهلاً بيك"}</h2><p class="sub">اختار صفك الدراسي.</p>`+["p","e","s"].map(k=>`<h3 class="sth">${SN[k]}</h3><div class="grades">${G[k].map((g,i)=>`<a class="glass glow" style="--i:${i}" href="#${"grade-"+gid(k,i)}"><b>الصف ${g}</b><small>${N[k]}</small></a>`).join("")}</div>`).join("");return}
@@ -253,11 +259,18 @@ function route(){const h=location.hash,lg=h==="#login",ap=h==="#app"||h.startsWi
 function mi(){const b=document.querySelector("#at .on"),t=$("#at").getBoundingClientRect(),r=b.getBoundingClientRect();$("#ai").style.left=(r.left-t.left)+"px";$("#ai").style.width=r.width+"px"}
 $("#at").onclick=e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#at button").forEach(x=>x.classList.toggle("on",x===b));mi();const g=b.dataset.m==="g";$("#fc").hidden=g;$("#fg").hidden=!g;am("")};
 $("#cd").oninput=e=>{let v=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);e.target.value=v.length>4?v.slice(0,4)+"-"+v.slice(4):v};
-const LOCAL={"2dfe274e928aced86b8999811fd6f8594c1bbf12b7b3edf8290110ba4b02f3fc":{role:"student",name:"طالب"},"b84f6e611f7d20eb68eafc3677fac95cb0cb81f7a6f20c568b622209d4bd97e8":{role:"admin",name:"المسؤول"}};
+const LOCAL={};
 async function sha(t){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(_){return""}}
 const done=(n,role="student")=>{ses={role,name:n||"طالب"};am("أهلاً "+(n||"بيك")+" ✅","ok");setTimeout(()=>{location.hash="#app"},650)};
 $("#fc").onsubmit=async e=>{e.preventDefault();const c=$("#cd").value.replace("-","");
  if(c.length<8){am("الكود لازم يكون 8 حروف وأرقام.","er");return}
+ if(AUTH.firebase){am("جاري التحقق...");try{
+  if(!window.firebase)await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+  if(!firebase.firestore)await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js");
+  if(!firebase.apps.length)firebase.initializeApp(AUTH.firebase);
+  const s=await firebase.firestore().collection("codes").doc(c).get();
+  s.exists&&s.data().active!==false?done(s.data().name,s.data().role||"student"):am("الكود غير صحيح أو منتهي.","er")
+ }catch(_){am("حصلت مشكلة في الاتصال، جرب تاني.","er")}return}
  if(!AUTH.codeEndpoint){const h=await sha(c),u=LOCAL[h];u?done(u.name,u.role):am("الكود غير صحيح.","er");return}
  am("جاري التحقق...");try{const r=await fetch(AUTH.codeEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:c})}),d=await r.json();
  d.ok?done(d.name,d.role||"student"):am("الكود غير صحيح أو منتهي.","er")}catch(_){am("حصلت مشكلة في الاتصال، جرب تاني.","er")}};
@@ -266,6 +279,84 @@ $("#gb").onclick=async()=>{if(!AUTH.firebase){am("الدخول بجوجل هيت
  am("جاري الفتح...");try{if(!window.firebase){await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");await ld("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js")}
  if(!firebase.apps.length)firebase.initializeApp(AUTH.firebase);const r=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());done(r.user.displayName)}
  catch(e){am(e&&e.code==="auth/popup-closed-by-user"?"قفلت نافذة الدخول.":"تعذر الدخول بجوجل، جرب تاني.","er")}};
+/* ===== Firebase: أكواد + طلاب + لوحة المسؤول ===== */
+const EM=c=>c.toLowerCase()+"@eldars.app",OWN="maro1414@eldars.app",ADM="doma8080@eldars.app";
+const esc=t=>String(t==null?"":t).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";"),su=u=>/^https?:\/\//i.test(u||"")?esc(u):"";
+const en=s=>s.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)),fmt=c=>(c||"").replace(/^(.{4})(.{4})$/,"$1-$2");
+const GOV="القاهرة|الجيزة|الإسكندرية|القليوبية|الشرقية|الدقهلية|الغربية|المنوفية|كفر الشيخ|البحيرة|دمياط|بورسعيد|الإسماعيلية|السويس|شمال سيناء|جنوب سيناء|الفيوم|بني سويف|المنيا|أسيوط|سوهاج|قنا|الأقصر|أسوان|البحر الأحمر|الوادي الجديد|مطروح".split("|");
+const GR=Object.keys(G).flatMap(k=>G[k].map((g,i)=>[gid(k,i),"الصف "+g+" – "+N[k]])),GL=i=>(GR.find(x=>x[0]===i)||[0,"—"])[1];
+const gen=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";return Array.from(crypto.getRandomValues(new Uint8Array(8)),x=>a[x%a.length]).join("")};
+let FP=null,DB=null,S2=null;
+const fb=()=>FP||(FP=(async()=>{const b="https://www.gstatic.com/firebasejs/10.12.2/firebase-";
+ if(!window.firebase)await ld(b+"app-compat.js");if(!firebase.auth)await ld(b+"auth-compat.js");if(!firebase.firestore)await ld(b+"firestore-compat.js");
+ if(!firebase.apps.length)firebase.initializeApp(AUTH.firebase);DB=firebase.firestore();return firebase})());
+async function start(u){await fb();const own=u.email===OWN;
+ if(own||u.email===ADM){ses={role:"admin",own,uid:u.uid,name:own?"المسؤول الأساسي":"المسؤول"};return}
+ const s=await DB.collection("students").doc(u.uid).get();
+ if(!s.exists){if(u.providerData.some(x=>x.providerId==="google.com")){const d={google:true,email:u.email||"",name:u.displayName||"",done:false,approved:false,teacherId:"",code:"",at:Date.now()};
+  await DB.collection("students").doc(u.uid).set(d);ses={role:"student",uid:u.uid,name:d.name||"طالب",st:d};return}
+  await firebase.auth().signOut();throw 0}
+ ses={role:"student",uid:u.uid,name:s.data().name||"طالب",st:s.data()}}
+const go=()=>{location.hash==="#app"?route():location.hash="#app"};
+$("#fc").onsubmit=async e=>{e.preventDefault();const c=$("#cd").value.replace("-","");
+ if(c.length<8){am("الكود لازم يكون 8 حروف وأرقام.","er");return}
+ am("جاري التحقق...");try{await fb();const r=await firebase.auth().signInWithEmailAndPassword(EM(c),c);await start(r.user);am("أهلاً ✅","ok");setTimeout(go,500)}
+ catch(e){am("الكود غير صحيح أو منتهي. ("+((e&&e.code)||e)+")","er")}};
+$("#gb").onclick=async()=>{am("جاري الفتح...");try{await fb();const r=await firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());await start(r.user);am("أهلاً ✅","ok");setTimeout(go,500)}
+ catch(e){am(e&&e.code==="auth/popup-closed-by-user"?"قفلت نافذة الدخول.":"تعذر الدخول بجوجل، جرب تاني.","er")}};
+fb().then(f=>f.auth().onAuthStateChanged(async u=>{if(u&&!ses){try{await start(u);route()}catch(_){}}}));
+function renderApp(h){const v=$("#av");v.onclick=null;
+ if(ses.role==="admin")return admin(v);
+ if(ses.st&&ses.st.approved===false){v.innerHTML='<div class="glass empty"><h3>حسابك مستني موافقة المسؤول</h3><p>أول ما يوافق، اخرج وادخل تاني بجوجل وكمّل بياناتك.</p></div>';return}
+ if(!ses.st||!ses.st.done)return reg(v);
+ return home(v)}
+/* ---- تسجيل بيانات الطالب (أول دخول) ---- */
+function reg(v){v.innerHTML=`<div class="ad glass"><h2>بيانات الطالب</h2><p class="sub">املأ البيانات دي مرة واحدة بس.</p>
+<label>الاسم رباعي</label><input id="qn">
+<label>الصف</label><select id="qg">${GR.map(([i,t])=>`<option value="${i}">${t}</option>`).join("")}</select>
+<label>المواد (تقدر تختار أكتر من مادة)</label><div id="qs" class="ad"></div>
+<label>رقم ولي الأمر</label><input id="qp" inputmode="tel" dir="ltr">
+<label>رقم الطالب</label><input id="qt" inputmode="tel" dir="ltr">
+<label>المحافظة</label><select id="qv">${GOV.map(x=>`<option>${x}</option>`).join("")}</select>
+<button class="btn" id="qb">حفظ ودخول</button><p class="am" id="qm"></p></div>`;
+ const sj=()=>{$("#qs").innerHTML=SJ[$("#qg").value[0]].map(x=>`<label class="ck"><input type="checkbox" value="${x}"> ${x}</label>`).join("")};
+ $("#qg").onchange=sj;sj();
+ $("#qb").onclick=async()=>{const n=$("#qn").value.trim().replace(/\s+/g," "),p=en($("#qp").value.trim()),t=en($("#qt").value.trim()),sb=[...document.querySelectorAll("#qs input:checked")].map(x=>x.value),m=$("#qm"),ph=/^01\d{9}$/;
+  if(n.split(" ").length<4){m.textContent="اكتب الاسم رباعي.";return}
+  if(!sb.length){m.textContent="اختار مادة واحدة على الأقل.";return}
+  if(!ph.test(p)||!ph.test(t)){m.textContent="رقم الموبايل لازم يكون 11 رقم ويبدأ بـ 01.";return}
+  m.textContent="جاري الحفظ...";try{const d={...ses.st,done:true,name:n,grade:$("#qg").value,subjects:sb,parentPhone:p,phone:t,gov:$("#qv").value};
+   await DB.collection("students").doc(ses.uid).set(d,{merge:true});ses.st=d;ses.name=n;renderApp("#app")}catch(_){m.textContent="تعذر الحفظ، جرب تاني."}}}
+/* ---- صفحة الطالب ---- */
+async function home(v){const s=ses.st;v.innerHTML=`<h2>أهلاً ${esc(s.name.split(" ")[0])}</h2><p class="sub">${GL(s.grade)} – ${esc(s.subjects.join("، "))}</p><div id="xl">جاري التحميل...</div>`;
+ try{const [t,l]=await Promise.all([DB.collection("teachers").get(),DB.collection("lessons").get()]),T={};
+  t.forEach(d=>{const x=d.data();if(x.grade===s.grade&&(s.subjects.includes(x.subject)||d.id===s.teacherId))T[d.id]=x});
+  const L=l.docs.map(d=>d.data()).filter(x=>T[x.teacherId]).sort((a,b)=>a.at-b.at),ids=Object.keys(T);
+  $("#xl").innerHTML=ids.length?ids.map(id=>`<h3 class="sth">${esc(T[id].subject)} – ${esc(T[id].name)}</h3>`+(L.filter(y=>y.teacherId===id).map(y=>`<div class="ad r glass"><b>${esc(y.title)}</b><span>${su(y.video)?`<a class="btn" target="_blank" rel="noopener" href="${su(y.video)}">▶ فيديو</a> `:""}${su(y.link)?`<a class="btn g" target="_blank" rel="noopener" href="${su(y.link)}">رابط</a>`:""}</span></div>`).join("")||`<div class="glass empty"><p>لسه مفيش دروس.</p></div>`)).join(""):`<div class="glass empty"><h3>لسه مفيش مدرسين</h3><p>هتظهر هنا مواد مدرسينك أول ما يتضافوا.</p></div>`
+ }catch(_){$("#xl").innerHTML=`<div class="glass empty"><h3>تعذر التحميل</h3></div>`}}
+/* ---- لوحة المسؤول ---- */
+function admin(v){v.innerHTML=`<h2>${ses.own?"لوحة المسؤول الأساسي":"لوحة المسؤول"}</h2><div class="sjs" id="xtb">${[["t","المدرسين"],["l","الدروس"],["s","الطلاب والأكواد"]].map(([k,x])=>`<button class="sj glass" data-k="${k}">${x}</button>`).join("")}</div><div id="xb"></div>`;
+ v.onclick=e=>{const b=e.target.closest("[data-k],[data-a]");if(!b)return;b.dataset.k?tab(b.dataset.k):act(b.dataset.a,b.dataset.i)};tab("t")}
+async function tab(k){const b=$("#xb");b.innerHTML='<p class="sub">جاري التحميل...</p>';
+ document.querySelectorAll("#xtb .sj").forEach(x=>x.classList.toggle("on",x.dataset.k===k));
+ try{const [T,L,S]=await Promise.all(["teachers","lessons","students"].map(n=>DB.collection(n).get().then(q=>q.docs.map(d=>({id:d.id,...d.data()})))));
+  const row=(t,a,i,ex="")=>`<div class="ad r glass"><span>${t}</span><span>${ex}<button class="btn g" data-a="${a}" data-i="${i}">حذف</button></span></div>`,
+  TO=T.map(x=>`<option value="${x.id}">${esc(x.name)} – ${esc(x.subject)} (${GL(x.grade)})</option>`).join(""),tn=id=>esc((T.find(x=>x.id===id)||{}).name||"—");
+  if(k==="t")b.innerHTML=`<div class="ad glass"><input id="xn" placeholder="اسم المدرس"><select id="xs">${[...new Set(Object.values(SJ).flat())].map(x=>`<option>${x}</option>`).join("")}</select><select id="xg">${GR.map(([i,t])=>`<option value="${i}">${t}</option>`).join("")}</select><button class="btn" data-a="addT">إضافة مدرس</button></div>`+T.map(x=>row(`${esc(x.name)} – ${esc(x.subject)} – ${GL(x.grade)}`,"delT",x.id)).join("");
+  else if(k==="l")b.innerHTML=`<div class="ad glass"><select id="xt">${TO}</select><input id="xl2" placeholder="عنوان الدرس"><input id="xv" dir="ltr" placeholder="رابط الفيديو https://..."><input id="xk" dir="ltr" placeholder="رابط إضافي (اختياري) https://..."><button class="btn" data-a="addL">إضافة درس</button></div>`+L.sort((a,b)=>b.at-a.at).map(x=>row(`${esc(x.title)} – ${tn(x.teacherId)}`,"delL",x.id)).join("");
+  else b.innerHTML=`<div class="ad glass"><select id="xt">${TO}</select><button class="btn" data-a="newS">إنشاء كود طالب</button><p id="xc" class="am"></p></div>`+S.sort((a,b)=>b.at-a.at).map(x=>x.approved===false?row(`🔔 طلب دخول بجوجل: ${esc(x.name)} – ${esc(x.email)}<br>اختار المدرس من فوق ثم قبول`,"delS",x.id,`<button class="btn" data-a="okS" data-i="${x.id}">قبول</button> `):row(`<b dir="ltr">${fmt(x.code)}</b> – ${x.done?esc(x.name)+" – "+GL(x.grade)+" – "+esc((x.subjects||[]).join("، "))+"<br>ولي الأمر: "+esc(x.parentPhone)+" – الطالب: "+esc(x.phone)+" – "+esc(x.gov):"لسه ماسجلش"}<br>المدرس: ${tn(x.teacherId)}`,"delS",x.id)).join("")
+ }catch(_){b.innerHTML=`<div class="glass empty"><h3>تعذر تحميل البيانات</h3><p>اتأكد من الـRules وإنك داخل بحساب المسؤول.</p></div>`}}
+async function act(a,i){const g=id=>$("#"+id).value.trim(),ok=u=>!u||/^https?:\/\//i.test(u),C=n=>DB.collection(n),M={delT:["teachers","t"],delL:["lessons","l"],delS:["students","s"]};
+ try{if(a==="addT"){if(!g("xn"))return;await C("teachers").add({name:g("xn"),subject:$("#xs").value,grade:$("#xg").value,at:Date.now()});tab("t")}
+  else if(M[a]){if(!confirm("متأكد من الحذف؟"))return;await C(M[a][0]).doc(i).delete();tab(M[a][1])}
+  else if(a==="addL"){if(!g("xl2")||!$("#xt").value)return alert("اختار مدرس واكتب عنوان الدرس");
+   if(!ok(g("xv"))||!ok(g("xk")))return alert("الرابط لازم يبدأ بـ https://");
+   await C("lessons").add({teacherId:$("#xt").value,title:g("xl2"),video:g("xv"),link:g("xk"),at:Date.now()});tab("l")}
+  else if(a==="okS"){const t=$("#xt").value;if(!t)return alert("اختار المدرس من فوق الأول");await C("students").doc(i).update({approved:true,teacherId:t});tab("s")}
+  else if(a==="newS"){const t=$("#xt").value;if(!t)return alert("ضيف مدرس الأول");const c=gen();
+   S2=S2||firebase.initializeApp(AUTH.firebase,"s2");const r=await S2.auth().createUserWithEmailAndPassword(EM(c),c);await S2.auth().signOut();
+   await C("students").doc(r.user.uid).set({code:c,teacherId:t,done:false,at:Date.now()});await tab("s");const m=$("#xc");m.className="am ok";m.textContent="الكود الجديد: "+fmt(c)}
+ }catch(e){alert("حصلت مشكلة: "+(e.code||e.message))}}
 addEventListener("hashchange",route);route();
 </script>
 </body>
