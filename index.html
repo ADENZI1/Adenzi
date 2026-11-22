@@ -260,7 +260,7 @@ const am=(t,k)=>{const e=$("#am");e.className="am "+(k||"");e.textContent=t};
 const SJ={p:["لغة عربية","رياضيات","لغة إنجليزية","علوم","دراسات اجتماعية"],e:["لغة عربية","رياضيات","لغة إنجليزية","علوم","دراسات اجتماعية"],s:["لغة عربية","لغة إنجليزية","رياضيات","فيزياء","كيمياء","أحياء","تاريخ","جغرافيا"]},SN={p:"المرحلة الابتدائية",e:"المرحلة الإعدادية",s:"المرحلة الثانوية"};
 const gid=(k,i)=>k+(k==="p"?i+4:i+1);
 function hb(){const b=$("#hb"),u=$("#uc");$("#hg").setAttribute("href",ses?"#app":"#grades");
- if(ses){u.hidden=false;u.textContent=ses.role==="admin"?"مسؤول":ses.role==="teacher"?"مدرس":"طالب";b.textContent="خروج";b.setAttribute("href","#top");b.onclick=()=>{ses=null;LS(0);try{firebase.auth().signOut()}catch(_){}}}
+ if(ses){u.hidden=false;u.textContent=ses.role==="admin"?"مسؤول":ses.role==="teacher"?"مدرس":"طالب";b.textContent="خروج";b.setAttribute("href","#top");b.onclick=e=>{if(!confirm("متأكد إنك عايز تسجل خروج؟")){e.preventDefault();return}ses=null;LS(0);try{firebase.auth().signOut()}catch(_){}}}
  else{u.hidden=true;b.textContent="تسجيل الدخول";b.setAttribute("href","#login");b.onclick=null}}
 function renderApp(h){const v=$("#av");
  if(h==="#app"){v.innerHTML=`<h2>${ses.role==="admin"?"أهلاً يا مسؤول":"أهلاً بيك"}</h2><p class="sub">اختار صفك الدراسي.</p>`+["p","e","s"].map(k=>`<h3 class="sth">${SN[k]}</h3><div class="grades">${G[k].map((g,i)=>`<a class="glass glow" style="--i:${i}" href="#${"grade-"+gid(k,i)}"><b>الصف ${g}</b><small>${N[k]}</small></a>`).join("")}</div>`).join("");return}
@@ -268,7 +268,7 @@ function renderApp(h){const v=$("#av");
  if(!G[k]||!G[k][i]){location.hash="#app";return}
  v.innerHTML=`<a class="back2" href="#app">→ كل الصفوف</a><h2>الصف ${G[k][i]} – ${N[k]}</h2><p class="sub">اختار المادة عشان تشوف مدرسينها.</p><div class="sjs">${SJ[k].map((x,j)=>`<button class="sj glass glow" style="--i:${j}" data-s="${x}">${x}</button>`).join("")}</div><div id="tp"><div class="glass empty"><h3>اختار مادة</h3><p>هتظهر هنا قايمة مدرسين المادة.</p></div></div>`;
  v.onclick=e=>{const b=e.target.closest(".sj");if(!b)return;v.querySelectorAll(".sj").forEach(x=>x.classList.toggle("on",x===b));$("#tp").innerHTML=`<div class="glass empty"><h3>لسه مفيش مدرسين في ${b.dataset.s}</h3><p>هتلاقي هنا مدرسين المادة وكورساتهم أول ما يتضافوا.</p></div>`}}
-function route(){const h=location.hash,lg=h==="#login",ap=h==="#app"||h.startsWith("#grade-");
+function route(){endPlay();const h=location.hash,lg=h==="#login",ap=h==="#app"||h.startsWith("#grade-");
  if(ap&&!ses){if(LH()){$("main").hidden=true;$("#lv").hidden=true;$("#av").hidden=false;$("#av").innerHTML='<p class="sub" style="text-align:center;margin-top:80px">جاري التحميل...</p>';return}location.hash="#login";return}
  if(lg&&ses){location.hash="#app";return}
  $("main").hidden=lg||ap;$("#lv").hidden=!lg;$("#av").hidden=!ap;hb();
@@ -468,10 +468,10 @@ const ytReady=()=>window.YT&&YT.Player?Promise.resolve():new Promise(r=>{window.
 function endPlay(){TM.forEach(clearInterval);TM=[];GL2.forEach(([o,e,f])=>o.removeEventListener(e,f));GL2=[];try{YTP&&YTP.destroy()}catch(_){}YTP=null}
 function alA(ev,vid){const k=ev+vid;if(LA[k]&&Date.now()-LA[k]<60000)return;LA[k]=Date.now();cl("alerts").add({uid:ses.uid,name:ses.name||"",num:(ses.st||{}).num||"",ev,vid:vid||"",at:Date.now()}).catch(()=>{})}
 async function play(l,j){const L=CL.find(x=>x.id===l),v=L.v[+j],id=ytId(v.u),s=ses.st||{};
- vw(`<button class="btn g" data-a="co" data-i="${L.teacherId}">→ رجوع</button><h3 class="sth">${esc(v.t)}</h3><div class="pw" id="pw"><div id="yt"></div><div class="sh" id="sh"></div><div class="pz" id="pz">▶</div><div class="wm" id="wm"></div><div class="blk" id="blk">تم إيقاف الفيديو لحماية المحتوى — اضغط للمتابعة</div><div class="pc"><button id="pp">⏯</button><input id="sk" type="range" min="0" max="1000" value="0"><span id="tt"></span><select id="sp">${[.75,1,1.25,1.5,2].map(x=>`<option${x===1?" selected":""}>${x}</option>`).join("")}</select><button id="fs">⛶</button></div></div>`);
+ vw(`<button class="btn g" data-a="co" data-i="${L.teacherId}">→ رجوع</button><h3 class="sth">${esc(v.t)}</h3><div class="pw" id="pw"><div id="yt"></div><div class="sh" id="sh"></div><div class="pz" id="pz">▶</div><div class="wm" id="wm"></div><div class="blk" id="blk">تم إيقاف الفيديو لحماية المحتوى — اضغط للمتابعة</div><div class="pc"><button id="pp">⏯</button><input id="sk" type="range" min="0" max="1000" value="0"><span id="tt"></span><select id="sp">${[.75,1,1.25,1.5,2].map(x=>`<option${x===1?" selected":""}>${x}</option>`).join("")}</select><select id="ql"><option value="auto">الجودة</option></select><button id="fs">⛶</button></div></div>`);
  await ytReady();const g=x=>document.getElementById(x),dur=()=>YTP.getDuration()||1,tg=()=>YTP.getPlayerState()===1?YTP.pauseVideo():YTP.playVideo(),fm=t=>Math.floor(t/60)+":"+String(Math.floor(t%60)).padStart(2,"0");
- YTP=new YT.Player("yt",{videoId:id,width:"100%",height:"100%",playerVars:{controls:0,modestbranding:1,rel:0,disablekb:1,fs:0,iv_load_policy:3,playsinline:1,origin:location.origin},events:{onStateChange:e=>{g("pz").style.display=e.data===1?"none":"grid"}}});
- g("sh").onclick=g("pz").onclick=g("pp").onclick=tg;g("sp").onchange=e=>YTP.setPlaybackRate(+e.target.value);g("fs").onclick=()=>g("pw").requestFullscreen&&g("pw").requestFullscreen();
+ let QL=0;const QN={highres:"4K",hd2160:"2160p",hd1440:"1440p",hd1080:"1080p",hd720:"720p",large:"480p",medium:"360p",small:"240p",tiny:"144p"};YTP=new YT.Player("yt",{videoId:id,width:"100%",height:"100%",playerVars:{controls:0,modestbranding:1,rel:0,disablekb:1,fs:0,iv_load_policy:3,playsinline:1,origin:location.origin},events:{onStateChange:e=>{g("pz").style.display=e.data===1?"none":"grid";if(e.data===1&&!QL){QL=1;const q=YTP.getAvailableQualityLevels?YTP.getAvailableQualityLevels():[];g("ql").innerHTML='<option value="auto">تلقائي</option>'+q.filter(x=>QN[x]).map(x=>`<option value="${x}">${QN[x]}</option>`).join("")}}}});
+ g("sh").onclick=g("pz").onclick=g("pp").onclick=tg;g("sp").onchange=e=>YTP.setPlaybackRate(+e.target.value);g("ql").onchange=e=>{const q=e.target.value==="auto"?"default":e.target.value,t=YTP.getCurrentTime();YTP.loadVideoById({videoId:id,startSeconds:t,suggestedQuality:q});try{YTP.setPlaybackQuality(q);YTP.setPlaybackRate(+g("sp").value)}catch(_){}};g("fs").onclick=()=>g("pw").requestFullscreen&&g("pw").requestFullscreen();
  g("sk").oninput=e=>YTP.seekTo(e.target.value/1000*dur(),true);g("blk").onclick=()=>g("blk").style.display="none";
  const wm=g("wm");wm.textContent=(s.num||"")+" · "+(ses.name||"");const mv=()=>{wm.style.left=(4+Math.random()*60)+"%";wm.style.top=(6+Math.random()*78)+"%"};mv();
  TM.push(setInterval(mv,3500),setInterval(()=>{try{const c=YTP.getCurrentTime();g("sk").value=c/dur()*1000;g("tt").textContent=fm(c)+" / "+fm(dur())}catch(_){}},500));
@@ -479,7 +479,7 @@ async function play(l,j){const L=CL.find(x=>x.id===l),v=L.v[+j],id=ytId(v.u),s=s
  on(document,"visibilitychange",()=>{if(document.hidden)out()});on(window,"blur",out);
  on(document,"keyup",e=>{if(e.key==="PrintScreen"){try{navigator.clipboard.writeText(" ")}catch(_){}lock("ضغط زر Print Screen",1)}});
  on(document,"keydown",e=>{if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&/[ijcs]/i.test(e.key))||(e.ctrlKey&&/[sup]/i.test(e.key))){e.preventDefault();lock("محاولة فتح أدوات المطور أو حفظ الصفحة",1)}});
- on(document,"contextmenu",e=>e.preventDefault());
+ on(document,"contextmenu",e=>e.preventDefault());on(window,"pagehide",endPlay);
  if(!navigator.maxTouchPoints)TM.push(setInterval(()=>{if(outerWidth-innerWidth>200||outerHeight-innerHeight>260)lock("فتح أدوات المطور",1)},2000))}
 Object.assign(A,{
 vid(i){const [l,j]=i.split(":"),L=CL.find(x=>x.id===l),v=L.v[+j],now=Date.now();cl("prog").doc(ses.uid).set({w:{[l+"_"+j]:now},last:{t:v.t+" (محاضرة "+L.n+")",at:now,l}},{merge:true}).catch(()=>{});(ses.p.w=ses.p.w||{})[l+"_"+j]=now;play(l,j)},
