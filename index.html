@@ -317,7 +317,7 @@ const pm=(m,ph)=>new Promise(r=>{const d=document.createElement("div");d.classNa
 const say=m=>{const d=document.createElement("div");d.className="ts";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),3800)};
 const vw=h=>{endPlay();$("#av").innerHTML=h},err=e=>{console.error(e);const c=e&&e.code;vw(`<div class="glass empty"><h3>حصلت مشكلة</h3><p>${c==="permission-denied"?"مفيش صلاحية لفتح الصفحة دي دلوقتي.":"جرب تاني بعد شوية."}</p><p dir="ltr" class="sub">${esc(c||(e&&e.message)||"")}</p><button class="btn g" data-a="rf">تحديث</button></div>`)};
 /* فايربيز */
-let FP=null,DB=null,UN=null,YTP=null,TM=[],GL2=[],LA={},ZB=null,WT=null,WK="l",WC={},CT="",TT="",TD={},PV=[],ED=null,CL=[],CZ=[],SD="",BK=()=>{},GRN=false;const SDI={};
+let FP=null,DB=null,UN=null,INL=false,YTP=null,TM=[],GL2=[],LA={},ZB=null,WT=null,WK="l",WC={},CT="",TT="",TD={},PV=[],ED=null,CL=[],CZ=[],SD="",BK=()=>{},GRN=false;const SDI={};
 const fb=()=>FP||(FP=(async()=>{const b="https://www.gstatic.com/firebasejs/10.12.2/firebase-";if(!window.firebase)await ld(b+"app-compat.js");if(!firebase.auth)await ld(b+"auth-compat.js");if(!firebase.firestore)await ld(b+"firestore-compat.js");if(!firebase.apps.length)firebase.initializeApp(AUTH.firebase);DB=firebase.firestore();return firebase})());
 const cl=n=>DB.collection(n),qa=async(n,f)=>(await(f?f(cl(n)):cl(n)).get()).docs.map(d=>({id:d.id,...d.data()}));
 const tch=async ids=>{const o={},m=[];ids.forEach(i=>{const c=gC("t_"+i,60);c?o[i]=c:m.push(i)});for(let k=0;k<m.length;k+=10)(await DB.collection("teachers").where(firebase.firestore.FieldPath.documentId(),"in",m.slice(k,k+10)).get()).docs.forEach(d=>{o[d.id]={id:d.id,...d.data()};sC("t_"+d.id,o[d.id])});return o};
@@ -336,12 +336,12 @@ async function start(u){await fb();const em=(u.email||"").toLowerCase(),ck="p_"+
  ses={...r,uid:u.uid};LS(1);if(!r.pend&&r.role!=="new")sC(ck,r)}
 const SIDK="adz_sid",gSid=()=>{try{return localStorage.getItem(SIDK)}catch(_){return null}};
 async function claim(){if(!ses||ses.role==="admin")return;const sid=Math.random().toString(36).slice(2)+Date.now().toString(36);try{localStorage.setItem(SIDK,sid)}catch(_){}try{await cl("sessions").doc(ses.uid).set({sid,at:Date.now(),ua:navigator.userAgent.slice(0,80)});watch()}catch(_){}}
-function watch(){if(UN||!ses||ses.role==="admin")return;const sid=gSid();UN=cl("sessions").doc(ses.uid).onSnapshot(d=>{const v=d.exists?d.data().sid:null;if(!sid||v!==sid)kick()},()=>{})}
+function watch(){if(UN||!ses||ses.role==="admin")return;UN=cl("sessions").doc(ses.uid).onSnapshot(d=>{if(INL)return;const my=gSid(),v=d.exists?d.data().sid:null;if(!my||v!==my)kick()},()=>{})}
 async function kick(){if(UN){UN();UN=null}ses=null;LS(0);CLR();try{await firebase.auth().signOut()}catch(_){}endPlay();say("تم تسجيل الدخول بحسابك من جهاز تاني، فاتسجّل خروجك من هنا.");location.hash==="#login"?route():location.hash="#login"}
 async function logout(e){e.preventDefault();if(!(await ask("متأكد إنك عايز تسجل خروج؟","خروج")))return;if(UN){UN();UN=null}ses=null;LS(0);CLR();try{await firebase.auth().signOut()}catch(_){}location.hash==="#login"?route():location.hash="#login"}
 const go=()=>{location.hash==="#app"?route():location.hash="#app"};
 async function gis(){if(GRN)return;try{await ld("https://accounts.google.com/gsi/client");await fb();
- google.accounts.id.initialize({client_id:GCID,callback:async r=>{am("جاري الدخول...");try{const u=await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));await start(u.user);await claim();am("أهلاً ✅","ok");setTimeout(go,400)}catch(e){am("تعذر الدخول بجوجل، جرب تاني. ("+(e.code||e)+")","er")}}});
+ google.accounts.id.initialize({client_id:GCID,callback:async r=>{am("جاري الدخول...");INL=true;try{const u=await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(r.credential));await start(u.user);await claim();am("أهلاً ✅","ok");setTimeout(go,400)}catch(e){am("تعذر الدخول بجوجل، جرب تاني. ("+(e.code||e)+")","er")}finally{INL=false}}});
  google.accounts.id.renderButton($("#gg"),{theme:"outline",size:"large",text:"continue_with",shape:"pill",locale:"ar",width:Math.min(400,Math.max(200,$("#gx").clientWidth||300))});GRN=true}catch(_){am("تعذر تحميل زر جوجل، حدّث الصفحة.","er")}}
 /* الصفحات العامة */
 function hb(){const b=$("#hb"),u=$("#uc");$("#hg").setAttribute("href",ses?"#app":"#grades");
@@ -524,7 +524,7 @@ async delAl(i){try{await cl("alerts").doc(i).delete();adminHome("a")}catch(e){sa
 /* ===== البداية ===== */
 (async()=>{try{if(LH())return;await fb();const T=await qc("lt",60,()=>qa("pubT",c=>c.limit(40)));if(!T.length)return;const sec=document.createElement("section");sec.id="tl";sec.style.cssText="max-width:1100px;margin:30px auto;padding:0 16px";sec.innerHTML='<h3 class="sth" style="text-align:center">مدرسينا</h3>'+Object.keys(ST).map(k=>{const L=T.filter(t=>t.stage===k);return L.length?`<h4 class="sub">${ST[k]}</h4><div class="tg">${L.map(t=>`<div class="glass tc">${phs(t)}<b>${esc(t.name)}</b><span class="sub">${esc(t.subject||"")}</span></div>`).join("")}</div>`:""}).join("");$("main").appendChild(sec)}catch(_){}})();
 {const lg=document.querySelector(".logo");if(lg)lg.addEventListener("click",e=>{if(ses){e.preventDefault();location.hash==="#app"?route():location.hash="#app"}})}
-fb().then(f=>f.auth().onAuthStateChanged(async u=>{if(ses)return;if(u){try{await start(u);watch();route()}catch(_){LS(0);route()}}else if(LH()){LS(0);if(location.hash==="#app")location.hash="#login";else route()}}));
+fb().then(f=>f.auth().onAuthStateChanged(async u=>{if(ses||INL)return;if(u){try{await start(u);watch();route()}catch(_){LS(0);route()}}else if(LH()){LS(0);if(location.hash==="#app")location.hash="#login";else route()}}));
 if(LH()&&location.hash!=="#app")location.hash="#app";
 
 addEventListener("hashchange",route);route();
